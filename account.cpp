@@ -13,6 +13,8 @@ account::account (const char *acct_name)
   MYSQL_RES *result = NULL;
   MYSQL_ROW row;
   char error_message[ERR_STRING_LENGTH] = "\0";
+  
+  // Account.cpp
 
   initialize ();
 
