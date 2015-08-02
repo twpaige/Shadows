@@ -389,21 +389,21 @@ nanny_login_choice (DESCRIPTOR_DATA * d, char *argument)
              "or you are unaware of any other accounts used over your connection, please\n"
              "contact the administrative staff at " STAFF_EMAIL
              " for assistance.\n\n", d);
-            // SEND_TO_Q ("Your Selection: ", d);
-            // return;
+             SEND_TO_Q ("Your Selection: ", d);
+             return;
          }
         
 
 	// remarking out message that sends folks to Parallel website for account creation - Nimrod
-		SEND_TO_Q ("\n\nAll new accounts must be created through the Shadows of Isildur Web Portal.\n"
-				   "The following link will take you to the account creation page:\n"
-				   "http://www.middle-earth.us/generator/adduser.php\n\n", d);
-		SEND_TO_Q ("Your Selection: ", d);
+//		SEND_TO_Q ("\n\nAll new accounts must be created through the Shadows of Isildur Web Portal.\n"
+//				   "The following link will take you to the account creation page:\n"
+//				   "http://www.middle-earth.us/generator/adduser.php\n\n", d);
+//		SEND_TO_Q ("Your Selection: ", d);
 	// Remarking out the account application portion, next three lines. 0206141709 -Nimrod
 
-     //   SEND_TO_Q (get_text_buffer (NULL, text_list, "account_application"), d);
-     //   SEND_TO_Q ("What would you like to name your login account? ", d);
-     //   d->connected = CON_NEW_ACCT_NAME;
+        SEND_TO_Q (get_text_buffer (NULL, text_list, "account_application"), d);
+        SEND_TO_Q ("What would you like to name your login account? ", d);
+        d->connected = CON_NEW_ACCT_NAME;
         return;
     }
 
@@ -3537,7 +3537,7 @@ nanny_choose_pc (DESCRIPTOR_DATA * d, char *argument)
 
 	update_family_clanning (d);
 
-	conflicting_clan_check(d->character);
+	//conflicting_clan_check(d->character);
 
     return;
 
@@ -4061,7 +4061,7 @@ attribute_priorities (DESCRIPTOR_DATA * d, char *arg)
     int attr;
     int i;
     CHAR_DATA *ch = d->character;
-    int attr_starters[] = { 16, 14, 12, 12, 10, 10, 8 };
+    int attr_starters[] = { 16, 15, 12, 12, 11, 8 }; // missing a 10, this gets auto-assigned to aur. Missing so it doesn't get a random boost
     int attr_averages[] = { 12, 12, 12, 12, 12, 10, 12 };
     int attr_priorities[] = { -1, -1, -1, -1, -1, -1, -1 };
     char buf[MAX_STRING_LENGTH];
@@ -4122,7 +4122,7 @@ attribute_priorities (DESCRIPTOR_DATA * d, char *arg)
 
     if (average)
     {
-        for (bonus = 6; bonus;)
+        for (bonus = 10; bonus;)
         {
             attr = number (0, 6);
 
@@ -4148,20 +4148,17 @@ attribute_priorities (DESCRIPTOR_DATA * d, char *arg)
     }
     else
     {
-
-        // Put aura dead last.
-        attr_priorities[5] = 7;
-
-        for (bonus = 4; bonus;)
+        for (bonus = 8; bonus;)
         {
-            attr = number (0, 6);
+	  /* Rather than boosting a particular attr directly and doing the logic for a skip, this boosts one of the six
+	     starting point values as long as it's < 18. At the end, the six starting point values will be mapped onto
+	     attrs 0-4,6 (skipping aur:5) based on the priority array
+	  */
+            int slot = number (0, 5);
 
-            while (attr == 5)
-                attr = number (0, 6);
-
-            if (attr_starters[attr_priorities[attr]] < 18)
+            if (attr_starters[slot] < 18)
             {
-                attr_starters[attr_priorities[attr]]++;
+                attr_starters[slot]++;
                 bonus--;
             }
         }
@@ -4461,8 +4458,8 @@ nanny_char_name_confirm (DESCRIPTOR_DATA * d, char *arg)
     d->character->affected_by = 0;
 
     d->character->intoxication = 0;
-    d->character->thirst = 300;
-    d->character->hunger = 40;
+    d->character->thirst = MAX_THIRST;
+    d->character->hunger = NEWBIE_CALORIES;
 
     d->character->pc->load_count = 1;
     save_char (d->character, false);
@@ -5715,7 +5712,7 @@ autodesc_end (DESCRIPTOR_DATA * d, char *argument)
     SEND_TO_Q (get_text_buffer (NULL, text_list, "autodesc_end"), d);
 
     SEND_TO_Q ("#0", d);
-    SEND_TO_Q("\nEnter your choice - #9#61)#0 Custom, #9#62)#0 Assisted, #9#63)#0 Redo: ", d);
+    SEND_TO_Q("\nEnter your choice - #9#61)#0 Custom, #9#62)#0 Redo: ", d);
 
     *buf = '\0';
     *buf2 = '\0';
@@ -5765,7 +5762,7 @@ autodesc_result (DESCRIPTOR_DATA * d, char *argument)
 
     ch = d->character;
 
-    max = 3;
+    max = 2;
 
     if (!*argument)
     {
@@ -5773,7 +5770,7 @@ autodesc_result (DESCRIPTOR_DATA * d, char *argument)
         SEND_TO_Q (buf, d);
         return;
     }
-    else if (!str_cmp(argument, "REDO") || !str_cmp(argument, "redo") || (atoi(argument) == 3))
+    else if (!str_cmp(argument, "REDO") || !str_cmp(argument, "redo") || (atoi(argument) == 2))
     {
         create_menu_actions (d, "HEIGHT");
         return;
@@ -5787,27 +5784,11 @@ autodesc_result (DESCRIPTOR_DATA * d, char *argument)
 
     j = atoi(argument);
 
-    if (j == 1 || ((d->character->race == lookup_race_id("Cybernetic") || d->character->race == lookup_race_id("Mutation")) && j != 2))
+    if (j == 1)
     {
         d->character->pc->nanny_state = STATE_SDESC;
         d->connected = CON_CREATION;
         create_menu_options(d);
-        return;
-    }
-	else if ((d->character->race == lookup_race_id("Cybernetic") || d->character->race == lookup_race_id("Mutation")) && j == 2)
-	{
-        create_menu_actions (d, "HEIGHT");
-        return;
-	}
-	else if (j == 2)
-	{
-		d->connected = CON_DESC_HEIGHT;
-		autodesc_height (d);
-		return;
-	}
-    else
-    {
-        create_menu_actions (d, "HEIGHT");
         return;
     }
     return;
