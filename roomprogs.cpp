@@ -6097,6 +6097,17 @@ bool prog_object_properties( OBJ_DATA *obj, std::string argument, std::string& o
 	} else if ( buf.find( "mkey" ) != std::string::npos ) {
 		if ( obj->desc_keys )
 			output = obj->desc_keys;
+	} else if ( buf.find( "flag" ) != std::string::npos ) {
+			
+			// What flag are we looking for?
+			argument = one_argument( argument, buf );
+			
+			int ind = index_lookup (extra_bits, buf.c_str());
+
+			if (IS_SET (obj->obj_flags.extra_flags, 1 << ind))
+				output = "1";
+			else
+				output = "0";
 	}
 	else if ( buf.find( "months" ) != std::string::npos ) {
 		int morphtime = obj->morphTime - time( 0 );
@@ -6634,6 +6645,17 @@ void r_info( CHAR_DATA *ch, std::string argument, room_prog_var *& variable_list
 		} else if ( buf.find( "mkey" ) != std::string::npos ) {
 			if ( obj->desc_keys )
 				value = obj->desc_keys;
+		} else if ( buf.find( "flag" ) != std::string::npos ) {
+			
+			// What flag are we looking for?
+			argument = one_argument( argument, buf );
+			
+			int ind = index_lookup (extra_bits, buf.c_str());
+
+			if (IS_SET (obj->obj_flags.extra_flags, 1 << ind))
+				value = "1";
+			else
+				value = "0";
 		} else if ( buf.find( "oval" ) != std::string::npos ) {
 			switch ( buf[ 4 ] ) {
 				case '0':
